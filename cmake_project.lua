@@ -21,6 +21,10 @@ local cmake = p.modules.cmake
 cmake.project = {}
 local m = cmake.project
 
+function replaceWhiteSpace(str, replacement)
+    -- Replace all whitespace characters with the specified replacement
+    return string.gsub(str, "%s", replacement)
+end
 
 function m.getcompiler(cfg)
 	local default = iif(cfg.system == p.WINDOWS, "msc", "clang")
@@ -96,7 +100,8 @@ function m.generate(prj)
 		-- include dirs
 		_p('target_include_directories("%s" PRIVATE', prj.name)
 		for _, includedir in ipairs(cfg.includedirs) do
-			_x(1, '$<$<CONFIG:%s>:%s>', cmake.cfgname(cfg), includedir)
+			local replacedString = replaceWhiteSpace(includedir, "\\ ")
+			_x(1, '$<$<CONFIG:%s>:%s>', cmake.cfgname(cfg), replacedString)
 		end
 		_p(')')
 
@@ -108,9 +113,10 @@ function m.generate(prj)
 		_p(')')
 
 		-- lib dirs
-		_p('target_link_directories("%s" PRIVATE', prj.name)
+		_p('target_link_directories("%s" PUBLIC', prj.name)
 		for _, libdir in ipairs(cfg.libdirs) do
-			_p(1, '$<$<CONFIG:%s>:%s>', cmake.cfgname(cfg), libdir)
+			local replacedString = replaceWhiteSpace(libdir, "\\ ")
+			_p(1, '$<$<CONFIG:%s>:%s>', cmake.cfgname(cfg), replacedString)
 		end
 		_p(')')
 
